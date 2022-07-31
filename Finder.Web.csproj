@@ -8,9 +8,19 @@
         <PackageReference Include="AspNet.Security.OAuth.Discord" Version="6.0.6" />
         <PackageReference Include="AspNetCoreRateLimit" Version="4.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.7" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.0-preview.6.22329.4">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0-preview.6.22324.4" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0-preview.6.22324.4" />
+        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.22.0" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0-preview.6" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.0" />
+        <PackageReference Include="System.Text.Json" Version="7.0.0-preview.6.22324.4" />
       <ProjectReference Include="..\Finder.Database\Finder.Database.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Authentication\UserInfo.cshtml" />
     </ItemGroup>
 </Project>
