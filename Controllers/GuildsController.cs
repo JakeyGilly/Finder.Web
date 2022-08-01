@@ -1,4 +1,6 @@
+using Finder.Web.Models.DiscordAPIModels;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net;
@@ -13,16 +15,19 @@ public class GuildsController : Controller {
         _configuration = configuration;
     }
 
+    [Authorize]
     [Route("/guilds")]
     public async Task<IActionResult> Index() {
         var userGuilds = await DiscordApiGet("users/@me/guilds");
-        return new JsonResult(userGuilds);
+        if (userGuilds == null) return NotFound();
+        var json = JsonConvert.DeserializeObject<List<Guild>>(userGuilds);
+        return Ok(json);
         // return View();
     }
     
     
      public async Task<string?> DiscordApiGet(string urlEndpoint) {
-        HttpClient client = _httpClientFactory.CreateClient();
+         HttpClient client = _httpClientFactory.CreateClient();
         var accessToken = await HttpContext.GetTokenAsync("access_token");
         var tokenType = await HttpContext.GetTokenAsync("token_type") ?? "Bearer";
         var refreshToken = await HttpContext.GetTokenAsync("refresh_token");

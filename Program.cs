@@ -36,6 +36,7 @@ public static class Program {
         var app = builder.Build();
         if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
         app.UseRouting();
+        app.UseStaticFiles();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
