@@ -6,8 +6,8 @@ using Newtonsoft.Json;
 using System.Net;
 namespace Finder.Web.Controllers;
 
-
-public class GuildsController : Controller {
+[Route("discordapi")]
+public class GuildsController : ControllerBase {
     IHttpClientFactory _httpClientFactory;
     IConfiguration _configuration;
     public GuildsController(IHttpClientFactory httpClientFactory, IConfiguration configuration) {
@@ -16,18 +16,25 @@ public class GuildsController : Controller {
     }
 
     [Authorize]
-    [Route("/guilds")]
-    public async Task<IActionResult> Index() {
+    [Route("guilds")]
+    public async Task<IActionResult> Guilds() {
         var userGuilds = await DiscordApiGet("users/@me/guilds");
         if (userGuilds == null) return NotFound();
         var json = JsonConvert.DeserializeObject<List<Guild>>(userGuilds);
         return Ok(json);
-        // return View();
+    }
+
+    [Authorize]
+    [Route("user")]
+    public async Task<IActionResult> Users(string id) {
+        var guild = await DiscordApiGet($"users/@me");
+        if (guild == null) return NotFound();
+        var json = JsonConvert.DeserializeObject<User>(guild);
+        return Ok(json);
     }
     
-    
-     public async Task<string?> DiscordApiGet(string urlEndpoint) {
-         HttpClient client = _httpClientFactory.CreateClient();
+    public async Task<string?> DiscordApiGet(string urlEndpoint) {
+        HttpClient client = _httpClientFactory.CreateClient();
         var accessToken = await HttpContext.GetTokenAsync("access_token");
         var tokenType = await HttpContext.GetTokenAsync("token_type") ?? "Bearer";
         var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
