@@ -1,10 +1,12 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace Finder.Web.Controllers;
 
+[Authorize]
 [Route("/dashboard")]
 public class DashboardController : Controller {
     IHttpClientFactory _httpClientFactory;
@@ -16,15 +18,16 @@ public class DashboardController : Controller {
     
     public async Task<IActionResult> Index() {
         var response =
-            await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet("/users/@me/guilds"));
+            await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet("users/@me/guilds"));
         var response2 =
-            await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("/users/@me/guilds"));
-        var responce3 =
-            await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("/users/@me"));
-        ViewBag.Responces = new List<HttpResponseMessage> { response, response2, responce3 };
+            await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me/guilds"));
+        var response3 =
+            await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me"));
+        ViewBag.Responces = new List<HttpResponseMessage> { response, response2, response3 };
         ViewBag.DarkMode = true;
         return View("Index");
     }
+    
     
     [Route("/dashboard/{id}")]
     public IActionResult Guild(string id) {

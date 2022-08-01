@@ -29,13 +29,12 @@
                             <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link disabled" asp-controller="" asp-action="">Dashboard</a>
+                            <a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
                         </li>
                     </ul>
                     <div class="d-flex">
                         <li class="nav-item dropdown list-unstyled">
-                            @if (User.Identity.IsAuthenticated)
-                            {
+                            @if (User.Identity.IsAuthenticated) {
                                 <a class="nav-item nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <img src="https://cdn.discordapp.com/avatars/@(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value)/@(User.Claims.First(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash).Value).png" class="rounded-circle" height="45" alt="Profile" loading="lazy"/>
                                 </a>
@@ -59,9 +58,7 @@
                                         <a class="dropdown-item" asp-controller="Authentication" asp-action="LogOut">Logout</a>
                                     </li>
                                 </ul>
-                            }
-                            else
-                            {
+                            } else {
                                 <a class="nav-link" asp-controller="Authentication" asp-action="Login">Login</a>
                             }
                         </li>
@@ -112,7 +109,7 @@ else
                             <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link disabled" asp-controller="" asp-action="">Dashboard</a>
+                            <a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
                         </li>
                     </ul>
                     <div class="d-flex">
