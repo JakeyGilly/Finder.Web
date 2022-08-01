@@ -1,0 +1,69 @@
+﻿@using Newtonsoft.Json
+@using Finder.Web.Models.DiscordAPIModels
+@using System.Reflection.Metadata
+@{
+    ViewData["Title"] = "Dashboard";
+    List<Guild> BotGuilds = JsonConvert.DeserializeObject<List<Guild>>(await ViewBag.Responces[0].Content.ReadAsStringAsync());
+    List<Guild> UserGuilds = JsonConvert.DeserializeObject<List<Guild>>(await ViewBag.Responces[1].Content.ReadAsStringAsync());
+    User User = JsonConvert.DeserializeObject<User>(await ViewBag.Responces[2].Content.ReadAsStringAsync());
+}
+
+
+<!-- profile -->
+<div class="card text-center align-items-center" style="max-width: 200px">
+    <img src=@($"https://cdn.discordapp.com/avatars/{User.Id}/{User.Avatar}.png") alt="User Avatar" class="card-img card-img-top center" style="max-width: 200px"/>
+    <h1>@(User.Username)#@(User.Discriminator)</h1>
+    <h3 class="text-muted">@(User.Id)</h3>
+</div>
+
+<h4 class="text-muted ps-5 pt-5 pb-2">In @(UserGuilds.Count) Guilds</h4>
+
+@foreach (var guild in UserGuilds) {
+    if (BotGuilds.Any(x => x.Id == guild.Id)) {
+        <div class="card mt-3">
+            <div class="row g-0">
+                @if (@guild.Icon != null) {
+                    <div class="col-md-4">
+                        <img src=@($"https://cdn.discordapp.com/icons/{guild.Id}/{guild.Icon}.png") class="img-fluid rounded-start" alt="Guild Icon" height="50">
+                    </div>
+                } else {
+                    <div class="col-md-4">
+                        <img src=@($"https://camo.githubusercontent.com/92372c60b1f299502bec84d966f522af4570c5c2a9b3e962d5b96bd5a310f6a2/68747470733a2f2f63646e2e646973636f72646170702e636f6d2f617661746172732f3933393932323934383136333234343038322f66656661643362343336666234303738376339353866393233306135663739322e706e67") class="img-fluid rounded-start" alt="Guild Icon" height="50">
+                    </div>
+                }
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title">@guild.Name</h5>
+                        <p class="card-text">@guild.Description</p>
+                        <p class="card-text"><small class="text-muted">@guild.Id</small></p>
+                        <a asp-controller="Dashboard" asp-action="Guild" class="btn btn-primary">Go to guild dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    } else {
+        if ((long.Parse(guild.Permissions ?? $"{long.MaxValue}") & (8L | 32L)) == (8L | 32L)) {
+            <div class="card mt-3">
+                <div class="row g-0">
+                    @if (@guild.Icon != null) {
+                        <div class="col-md-4">
+                            <img src=@($"https://cdn.discordapp.com/icons/{guild.Id}/{guild.Icon}.png") class="img-fluid rounded-start" alt="Guild Icon" height="50">
+                        </div>
+                    } else {
+                        <div class="col-md-4">
+                            <img src=@($"https://camo.githubusercontent.com/92372c60b1f299502bec84d966f522af4570c5c2a9b3e962d5b96bd5a310f6a2/68747470733a2f2f63646e2e646973636f72646170702e636f6d2f617661746172732f3933393932323934383136333234343038322f66656661643362343336666234303738376339353866393233306135663739322e706e67") class="img-fluid rounded-start" alt="Guild Icon" height="50">
+                        </div>
+                    }
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">@guild.Name</h5>
+                            <p class="card-text">@guild.Description</p>
+                            <p class="card-text"><small class="text-muted">@guild.Id</small></p>
+                            <a asp-controller="Dashboard" asp-action="Guild" class="btn btn-primary">Invite finder to server</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+}

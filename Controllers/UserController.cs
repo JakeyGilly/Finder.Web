@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using AspNet.Security.OAuth.Discord;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Finder.Web.Controllers;
@@ -16,9 +17,6 @@ public class UserController : Controller {
     
     [Route("claims")]
     public IActionResult Claims() {
-        return Ok(User.Claims.Select(c => new {
-            c.Type,
-            c.Value
-        }));
+        return Ok(User.Claims.Select(c => new { c.Type, c.Value }));
     }
 }

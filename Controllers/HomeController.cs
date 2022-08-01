@@ -8,11 +8,15 @@ public class HomeController : Controller {
         _logger = logger;
     }
 
+    [Route("/")]
     public IActionResult Index() {
+        ViewBag.DarkMode = true;
         return View("Index");
     }
 
+    [Route("/privacy")]
     public IActionResult Privacy() {
+        ViewBag.DarkMode = false;
         return View("Privacy");
     }
 }
