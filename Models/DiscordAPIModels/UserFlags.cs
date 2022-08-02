@@ -1,4 +1,5 @@
 namespace Finder.Web.Models.DiscordAPIModels;
+
 public enum UserFlags {
     STAFF = 1 << 0,
     PARTNER = 1 << 1,

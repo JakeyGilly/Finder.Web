@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Finder.Web.Models;
+using System.Net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,15 +8,18 @@ using Newtonsoft.Json;
 namespace Finder.Web.Controllers;
 
 [Authorize]
-[Route("/dashboard")]
+[Route("[controller]")]
 public class DashboardController : Controller {
-    IHttpClientFactory _httpClientFactory;
-    IConfiguration _configuration;
-    public DashboardController(IHttpClientFactory httpClientFactory, IConfiguration configuration) {
+    private readonly ILogger<DashboardController> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly DiscordSettings _discordSettings;
+    public DashboardController(ILogger<DashboardController> logger, IHttpClientFactory httpClientFactory, DiscordSettings discordSettings) {
+        _logger = logger;
         _httpClientFactory = httpClientFactory;
-        _configuration = configuration;
+        _discordSettings = discordSettings;
     }
     
+    [Route("")]
     public async Task<IActionResult> Index() {
         var response =
             await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet("users/@me/guilds"));
@@ -24,12 +28,11 @@ public class DashboardController : Controller {
         var response3 =
             await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me"));
         ViewBag.Responces = new List<HttpResponseMessage> { response, response2, response3 };
-        ViewBag.DarkMode = true;
         return View("Index");
     }
     
     
-    [Route("/dashboard/{id}")]
+    [Route("{id}")]
     public IActionResult Guild(string id) {
         // return View()
         return NoContent();
@@ -55,8 +58,7 @@ public class DashboardController : Controller {
     [NonAction]
     private async Task<HttpResponseMessage> BotDiscordApiGet(string urlEndpoint) {
         var client = _httpClientFactory.CreateClient();
-        var botToken = _configuration.GetSection("Discord").GetValue<string>("BotToken");
-        client.DefaultRequestHeaders.Add("Authorization", $"Bot {botToken}");
+        client.DefaultRequestHeaders.Add("Authorization", $"Bot {_discordSettings.BotToken}");
         return await client.GetAsync($"https://discord.com/api/{urlEndpoint}");
     }
     [NonAction]
@@ -65,8 +67,8 @@ public class DashboardController : Controller {
         var requestData = new Dictionary<string, string> {
             ["grant_type"] = "refresh_token", 
             ["refresh_token"] = refreshToken,
-            ["client_id"] = _configuration.GetSection("Discord").GetValue<string>("ClientId"),
-            ["client_secret"] = _configuration.GetSection("Discord").GetValue<string>("ClientSecret")
+            ["client_id"] = _discordSettings.ClientId,
+            ["client_secret"] = _discordSettings.ClientSecret
         };
         var request = new HttpRequestMessage(HttpMethod.Post, "https://discord.com/api/oauth2/token") {
             Content = new FormUrlEncodedContent(requestData)
@@ -74,11 +76,15 @@ public class DashboardController : Controller {
         var response = await client.SendAsync(request);
         var responseString = await response.Content.ReadAsStringAsync();
         var responseData = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseString);
-        var newAccessToken = responseData.GetValueOrDefault("access_token");
-        var newRefreshToken = responseData.GetValueOrDefault("refresh_token");
-        var authInfo = await HttpContext.AuthenticateAsync();
-        authInfo.Properties.UpdateTokenValue("access_token", newAccessToken);
-        authInfo.Properties.UpdateTokenValue("refresh_token", newRefreshToken);
-        await HttpContext.SignInAsync(authInfo.Principal, authInfo.Properties);
+        if (responseData != null) {
+            var newAccessToken = responseData.GetValueOrDefault("access_token");
+            var newRefreshToken = responseData.GetValueOrDefault("refresh_token");
+            var authInfo = await HttpContext.AuthenticateAsync();
+            if (authInfo.Properties != null) {
+                if (newAccessToken != null) authInfo.Properties.UpdateTokenValue("access_token", newAccessToken);
+                if (newRefreshToken != null) authInfo.Properties.UpdateTokenValue("refresh_token", newRefreshToken);
+                if (authInfo.Principal != null) await HttpContext.SignInAsync(authInfo.Principal, authInfo.Properties);
+            }
+        }
     }
 }

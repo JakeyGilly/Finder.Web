@@ -6,6 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace Finder.Web.Controllers; 
 
 public class AuthenticationController : Controller {
+    ILogger<AuthenticationController> _logger;
+    public AuthenticationController(ILogger<AuthenticationController> logger) {
+        _logger = logger;
+    }
+    
     [Route("login")]
     public IActionResult LogIn() {
         return Challenge(new AuthenticationProperties { RedirectUri = "/" }, DiscordAuthenticationDefaults.AuthenticationScheme);

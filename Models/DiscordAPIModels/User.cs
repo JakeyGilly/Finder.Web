@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 
 namespace Finder.Web.Models.DiscordAPIModels;
+
 public class User {
     [JsonProperty("id")]
     public ulong Id { get; set; }

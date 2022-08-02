@@ -1,11 +1,17 @@
-﻿using AspNet.Security.OAuth.Discord;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Finder.Web.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
-public class UserController : Controller {
+public class DevController : Controller {
+    private readonly ILogger<DevController> _logger;
+    public DevController(ILogger<DevController> logger) {
+        _logger = logger;
+    }
+    
     [Route("token")]
     public async Task<IActionResult> Token() {
         return Ok(new {
