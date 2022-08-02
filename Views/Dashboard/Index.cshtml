@@ -1,9 +1,8 @@
-﻿@using Newtonsoft.Json
+﻿@model Finder.Web.Models.DTO.DashboardSelectorDTO;
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @using System.Security.Claims
 @using Finder.Database.Repositories.Web
 @using Finder.Web.Models
-@using Finder.Web.Models.DiscordAPIModels
 @inject DiscordSettings DiscordSettings
 @inject UserSettingsRepository UserSettingsRepository
 @{
@@ -13,17 +12,23 @@
     } else {
         ViewData["DarkMode"] = "false";
     }
-    List<Guild> botGuilds = JsonConvert.DeserializeObject<List<Guild>>(await ViewBag.Responces[0].Content.ReadAsStringAsync());
-    List<Guild> userGuilds = JsonConvert.DeserializeObject<List<Guild>>(await ViewBag.Responces[1].Content.ReadAsStringAsync());
-    User discordUser = JsonConvert.DeserializeObject<User>(await ViewBag.Responces[2].Content.ReadAsStringAsync());
+    if (Model.BotGuilds == null) {
+        throw new Exception("BotGuilds is null");
+    }
+    if (Model.UserGuilds == null) {
+        throw new Exception("UserGuilds is null");
+    }
+    if (Model.UserProfile == null) {
+        throw new Exception("UserProfile is null");
+    }
 }
 <div class="text-center pt-5 pb-2">
-    <h1>@(discordUser.Username)@(discordUser.Username.ToUpperInvariant().EndsWith("S") ? "'" : "'s") Servers</h1>
-    <h4 class="text-muted pt-5">In @(userGuilds.Count) Guilds</h4>
+    <h1>@(Model.UserProfile.Username)@(Model.UserProfile.Username.ToUpperInvariant().EndsWith("S") ? "'" : "'s") Servers</h1>
+    <h4 class="text-muted pt-5">In @(Model.UserGuilds.Count) Guilds</h4>
 </div>
 <div class="row">
     <div class="w-50 mx-auto">
-        @foreach (var guild in userGuilds.Where(guild => botGuilds.Any(x => x.Id == guild.Id))) {
+        @foreach (var guild in Model.UserGuilds.Where(guild => Model.BotGuilds.Any(x => x.Id == guild.Id))) {
             <div class="card mt-3 align-self-center">
                 <div class="row g-0">
                     @if (@guild.Icon != null) {
@@ -46,7 +51,7 @@
                 </div>
             </div>
         }
-        @foreach (var guild in userGuilds.Where(guild => botGuilds.All(x => x.Id != guild.Id) && (long.Parse(guild.Permissions) & (8L | 32L)) == (8L | 32L))) {
+        @foreach (var guild in Model.UserGuilds.Where(guild => Model.BotGuilds.All(x => x.Id != guild.Id) && (long.Parse(guild.Permissions) & (8L | 32L)) == (8L | 32L))) {
             var inviteLink = $"https://discord.com/api/oauth2/authorize?client_id={DiscordSettings.ClientId}&scope=bot&permissions=86&guild_id={guild.Id}";
             <div class="card mt-3 align-self-center">
                 <div class="row g-0">

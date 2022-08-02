@@ -1,4 +1,6 @@
 ﻿using Finder.Web.Models;
+using Finder.Web.Models.DiscordAPIModels;
+using Finder.Web.Models.DTO;
 using System.Net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -21,14 +23,11 @@ public class DashboardController : Controller {
     
     [Route("")]
     public async Task<IActionResult> Index() {
-        var response =
-            await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet("users/@me/guilds"));
-        var response2 =
-            await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me/guilds"));
-        var response3 =
-            await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me"));
-        ViewBag.Responces = new List<HttpResponseMessage> { response, response2, response3 };
-        return View("Index");
+        return View("Index", new DashboardSelectorDTO() {
+            BotGuilds =  JsonConvert.DeserializeObject<List<Guild>>(await (await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet("users/@me/guilds"))).Content.ReadAsStringAsync()),
+            UserGuilds =  JsonConvert.DeserializeObject<List<Guild>>(await (await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me/guilds"))).Content.ReadAsStringAsync()),
+            UserProfile =  JsonConvert.DeserializeObject<User>(await (await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me"))).Content.ReadAsStringAsync())
+        });
     }
     
     
