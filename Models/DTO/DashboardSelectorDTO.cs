@@ -1,4 +1,5 @@
 using Finder.Web.Models.DiscordAPIModels;
+
 namespace Finder.Web.Models.DTO;
 
 public class DashboardSelectorDTO {

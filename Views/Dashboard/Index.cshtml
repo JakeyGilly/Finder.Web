@@ -45,7 +45,7 @@
                             <h5 class="card-title">@guild.Name</h5>
                             <p class="card-text">@guild.Description</p>
                             <p class="card-text"><small class="text-muted">@guild.Id</small></p>
-                            <a asp-controller="Dashboard" asp-action="Guild" class="btn btn-primary">Go to guild dashboard</a>
+                            <a asp-controller="Dashboard" asp-action="Guild" asp-route-id="@guild.Id" class="btn btn-primary">Go to guild dashboard</a>
                         </div>
                     </div>
                 </div>
