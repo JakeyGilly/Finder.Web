@@ -1,4 +1,5 @@
 using Finder.Database.DatabaseContexts;
+using Finder.Database.Repositories.Bot;
 using Finder.Database.Repositories.Web;
 using Finder.Web.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -21,6 +22,7 @@ public static class Program {
         builder.Services.AddSingleton(discordSettings);
         builder.Services.AddSingleton(connectionSettings);
         builder.Services.AddScoped<UserSettingsRepository>();
+        builder.Services.AddScoped<AddonsRepository>();
         builder.Services.AddAuthentication(options => {
             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         }).AddCookie(options => {

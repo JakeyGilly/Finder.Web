@@ -1,4 +1,5 @@
-﻿using Finder.Web.Models;
+﻿using Finder.Database.Repositories.Bot;
+using Finder.Web.Models;
 using Finder.Web.Models.DiscordAPIModels;
 using Finder.Web.Models.DTO;
 using System.Net;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Security.Claims;
 
 namespace Finder.Web.Controllers;
 
@@ -15,15 +17,17 @@ public class DashboardController : Controller {
     private readonly ILogger<DashboardController> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly DiscordSettings _discordSettings;
-    public DashboardController(ILogger<DashboardController> logger, IHttpClientFactory httpClientFactory, DiscordSettings discordSettings) {
+    private readonly AddonsRepository _addonsRepository;
+    public DashboardController(ILogger<DashboardController> logger, IHttpClientFactory httpClientFactory, DiscordSettings discordSettings, AddonsRepository addonsRepository) {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _discordSettings = discordSettings;
+        _addonsRepository = addonsRepository;
     }
     
     [Route("")]
     public async Task<IActionResult> Index() {
-        return View("Index", new DashboardSelectorDTO() {
+        return View("Index", new DashboardSelectorDTO {
             BotGuilds =  JsonConvert.DeserializeObject<List<Guild>>(await (await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet("users/@me/guilds"))).Content.ReadAsStringAsync()),
             UserGuilds =  JsonConvert.DeserializeObject<List<Guild>>(await (await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me/guilds"))).Content.ReadAsStringAsync()),
             UserProfile =  JsonConvert.DeserializeObject<User>(await (await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me"))).Content.ReadAsStringAsync())
@@ -33,13 +37,24 @@ public class DashboardController : Controller {
     
     [Route("{id}")]
     public async Task<IActionResult> Guild(string id) {
-        return View("Dashboard", new GuildDashboardDTO() {
-            Guild = JsonConvert.DeserializeObject<Guild>(await (await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet("guilds/" + id, new Dictionary<string, string>() {{"with_counts", "true"}}))).Content.ReadAsStringAsync()),
+        return View("Dashboard", new GuildDashboardDTO {
+            Guild = JsonConvert.DeserializeObject<Guild>(await (await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet("guilds/" + id, new Dictionary<string, string> {{"with_counts", "true"}}))).Content.ReadAsStringAsync()),
             GuildMembers = JsonConvert.DeserializeObject<List<GuildMember>>(
                 await (await AccessTokenRefreshWrapper(async () => 
-                    await BotDiscordApiGet("guilds/" + id + "/members", new Dictionary<string, string>() {{ "limit", "1000" }})
+                    await BotDiscordApiGet("guilds/" + id + "/members", new Dictionary<string, string> {{ "limit", "1000" }})
                 )).Content.ReadAsStringAsync()),
         });
+    }
+    
+    [HttpPost("{id}")]
+    public async Task<IActionResult> GuildUpdate(string id, [FromForm] string ticTacToeAddon, [FromForm] string economyAddon, [FromForm] string levelingAddon, [FromForm] string ticketingAddon) {
+        var guildId = ulong.Parse(id);
+        await _addonsRepository.AddAddonAsync(guildId, "TicTacToe", ticTacToeAddon);
+        await _addonsRepository.AddAddonAsync(guildId, "Economy", economyAddon);
+        await _addonsRepository.AddAddonAsync(guildId, "Leveling", levelingAddon);
+        await _addonsRepository.AddAddonAsync(guildId, "Ticketing", ticketingAddon);
+        await _addonsRepository.SaveAsync();
+        return RedirectToAction("Index");
     }
     
     [NonAction]

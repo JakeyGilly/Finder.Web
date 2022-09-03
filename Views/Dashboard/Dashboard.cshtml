@@ -1,7 +1,10 @@
+@inject AddonsRepository AddonsRepository
 @inject UserSettingsRepository UserSettingsRepository
-@using Finder.Database.Repositories.Web
 @using Finder.Web.Models.DiscordAPIModels
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @using System.Security.Claims
+@using Finder.Database.Repositories.Bot
+@using Finder.Database.Repositories.Web
 @model Finder.Web.Models.DTO.GuildDashboardDTO
 @{
     ViewData["Title"] = "Dashboard";
@@ -16,6 +19,11 @@
     if (Model.GuildMembers == null) {
         throw new Exception("GuildMembers is null");
     }
+    var guildId = Model.Guild.Id;
+    var ticTacToeAddon = await AddonsRepository.AddonEnabled(guildId, "TicTacToe");
+    var economyAddon = await AddonsRepository.AddonEnabled(guildId, "Economy");
+    var levelingAddon = await AddonsRepository.AddonEnabled(guildId, "Leveling");
+    var ticketingAddon = await AddonsRepository.AddonEnabled(guildId, "Ticketing");
 }
 
 <img src=@($"https://cdn.discordapp.com/icons/{Model.Guild.Id}/{Model.Guild.Icon}.png") alt="Guild Icon" width="192" div class="img-fluid rounded-circle mx-auto d-block">
@@ -51,23 +59,23 @@
             <div class="card-body">
                 <h5 class="card-title">Addons</h5>
                 <p class="card-text">0/4 Addons Enabled</p>
-                <form class="form-check form-switch" style="padding-left: 0; padding-right: 0">
+                <form class="form-check form-switch" style="padding-left: 0; padding-right: 0" action=@($"/dashboard/{guildId}") method="post">
                     <div class="rounded" style="background-color: #444">
                         <div class="m-3 ms-5 ps-0">
-                            <input class="form-check-input" type="checkbox" id="TicTacToeAddon" name="TicTacToeAddon" value="true" checked/>
+                            <input class="form-check-input" type="checkbox" id="TicTacToeAddon" name="TicTacToeAddon" value="true" @(ticTacToeAddon ? "checked=\"checked\"" : "")/>
                             <label class="form-check-label" for="TicTacToeAddon">TicTacToe Adddon</label>
                         </div>
                         <div class="m-3 ms-5 ps-0">
-                            <input class="form-check-input" type="checkbox" id="RockPaperScissorsAddon" name="RockPaperScissorsAddon" value="true" checked/>
-                            <label class="form-check-label" for="RockPaperScissorsAddon">RockPaperScissors Addon</label>
+                            <input class="form-check-input" type="checkbox" id="EconomyAddon" name="EconomyAddon" value="true" @(economyAddon ? "checked=\"checked\"" : "")/>
+                            <label class="form-check-label" for="EconomyAddon">Economy Addon</label>
                         </div>
                         <div class="m-3 ms-5 ps-0">
-                            <input class="form-check-input" type="checkbox" id="LevelingAddons" name="LevelingAddons" value="true" checked/>
-                            <label class="form-check-label" for="TicTacToeAddon">Leveling Adddon</label>
+                            <input class="form-check-input" type="checkbox" id="LevelingAddon" name="LevelingAddon" value="true" @(levelingAddon ? "checked=\"checked\"" : "")/>
+                            <label class="form-check-label" for="LevelingAddon">Leveling Adddon</label>
                         </div>
                         <div class="m-3 ms-5 ps-0">
-                            <input class="form-check-input" type="checkbox" id="EconomyAddons" name="EconomyAddons" value="true" checked/>
-                            <label class="form-check-label" for="EconomyAddons">Economy Addon</label>
+                            <input class="form-check-input" type="checkbox" id="TicketingAddon" name="TicketingAddon" value="true" @(ticketingAddon ? "checked=\"checked\"" : "")/>
+                            <label class="form-check-label" for="TicketingAddon">Ticketing Addon</label>
                         </div>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
