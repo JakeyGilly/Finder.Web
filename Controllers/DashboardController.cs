@@ -38,10 +38,10 @@ public class DashboardController : Controller {
     [Route("{id}")]
     public async Task<IActionResult> Guild(string id) {
         return View("Dashboard", new GuildDashboardDTO {
-            Guild = JsonConvert.DeserializeObject<Guild>(await (await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet("guilds/" + id, new Dictionary<string, string> {{"with_counts", "true"}}))).Content.ReadAsStringAsync()),
+            Guild = JsonConvert.DeserializeObject<Guild>(await (await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet($"guilds/{id}", new Dictionary<string, string> {{"with_counts", "true"}}))).Content.ReadAsStringAsync()),
             GuildMembers = JsonConvert.DeserializeObject<List<GuildMember>>(
                 await (await AccessTokenRefreshWrapper(async () => 
-                    await BotDiscordApiGet("guilds/" + id + "/members", new Dictionary<string, string> {{ "limit", "1000" }})
+                    await BotDiscordApiGet($"guilds/{id}/members", new Dictionary<string, string> {{ "limit", "1000" }})
                 )).Content.ReadAsStringAsync()),
         });
     }
