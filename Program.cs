@@ -1,7 +1,7 @@
-using Finder.Database.DatabaseContexts;
-using Finder.Database.Repositories.Bot;
-using Finder.Database.Repositories.Web;
+using Finder.Web.Database;
 using Finder.Web.Models;
+using Finder.Web.Repositories.Bot;
+using Finder.Web.Repositories.Web;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.EntityFrameworkCore;

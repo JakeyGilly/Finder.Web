@@ -1,13 +1,12 @@
-﻿using Finder.Database.Repositories.Bot;
-using Finder.Web.Models;
+﻿using Finder.Web.Models;
 using Finder.Web.Models.DiscordAPIModels;
 using Finder.Web.Models.DTO;
+using Finder.Web.Repositories.Bot;
 using System.Net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Security.Claims;
 
 namespace Finder.Web.Controllers;
 
