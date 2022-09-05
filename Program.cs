@@ -12,15 +12,27 @@ namespace Finder.Web;
 
 public static class Program {
     public static void Main(string[] args) {
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISCORD_CLIENT_ID"))) {
+            Console.WriteLine("Environment variable DISCORD_CLIENT_ID is not set.");
+            return;
+        }
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET"))) {
+            Console.WriteLine("Environment variable DISCORD_CLIENT_SECRET is not set.");
+            return;
+        }
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"))) {
+            Console.WriteLine("Environment variable DISCORD_BOT_TOKEN is not set.");
+            return;
+        }
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"))) {
+            Console.WriteLine("Environment variable DB_CONNECTION_STRING is not set.");
+            return;
+        }
         var builder = WebApplication.CreateBuilder(args);
-        DiscordSettings discordSettings = builder.Configuration.GetSection("Discord").Get<DiscordSettings>();
-        ConnectionSettings connectionSettings = builder.Configuration.GetSection("ConnectionStrings").Get<ConnectionSettings>();
         builder.Services.AddDbContext<ApplicationContext>(options =>
-            options.UseNpgsql(connectionSettings.Default, options2 => options2.MigrationsAssembly("Finder.Database")),
+            options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")!),
             ServiceLifetime.Transient
         );
-        builder.Services.AddSingleton(discordSettings);
-        builder.Services.AddSingleton(connectionSettings);
         builder.Services.AddScoped<UserSettingsRepository>();
         builder.Services.AddScoped<AddonsRepository>();
         builder.Services.AddAuthentication(options => {
@@ -32,13 +44,14 @@ public static class Program {
             options.Scope.Add("identify");
             options.Scope.Add("guilds");
             options.Prompt = "none";
-            options.ClientId = discordSettings.ClientId;
-            options.ClientSecret = discordSettings.ClientSecret;
+            options.ClientId = Environment.GetEnvironmentVariable("DISCORD_CLIENT_ID")!;
+            options.ClientSecret = Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET")!;
             options.SaveTokens = true;
             options.Events = new OAuthEvents {
                 OnCreatingTicket = context => {
+                    List<string> ownerIds = Environment.GetEnvironmentVariable("BOT_OWNER_IDS")?.Split(',').ToList() ?? new();
                     if (!ulong.TryParse(context.Principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) return Task.CompletedTask;
-                    if (discordSettings.OwnerIds.IsNullOrEmpty() || !discordSettings.OwnerIds.Contains((long)userId)) {
+                    if (ownerIds.IsNullOrEmpty() || !ownerIds.Contains(userId.ToString())) {
                         context.Identity.AddClaim(new Claim("IsBotOwner", "false"));
                     } else {
                         context.Identity.AddClaim(new Claim("IsBotOwner", "true"));

@@ -1,5 +1,4 @@
-﻿using Finder.Web.Models;
-using Finder.Web.Models.DiscordAPIModels;
+﻿using Finder.Web.Models.DiscordAPIModels;
 using Finder.Web.Models.DTO;
 using Finder.Web.Repositories.Bot;
 using System.Net;
@@ -15,12 +14,10 @@ namespace Finder.Web.Controllers;
 public class DashboardController : Controller {
     private readonly ILogger<DashboardController> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly DiscordSettings _discordSettings;
     private readonly AddonsRepository _addonsRepository;
-    public DashboardController(ILogger<DashboardController> logger, IHttpClientFactory httpClientFactory, DiscordSettings discordSettings, AddonsRepository addonsRepository) {
+    public DashboardController(ILogger<DashboardController> logger, IHttpClientFactory httpClientFactory, AddonsRepository addonsRepository) {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
-        _discordSettings = discordSettings;
         _addonsRepository = addonsRepository;
     }
     
@@ -77,7 +74,7 @@ public class DashboardController : Controller {
     [NonAction]
     private async Task<HttpResponseMessage> BotDiscordApiGet(string urlEndpoint, Dictionary<string, string>? queryParams = null) {
         var client = _httpClientFactory.CreateClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bot {_discordSettings.BotToken}");
+        client.DefaultRequestHeaders.Add("Authorization", $"Bot {Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN")}");
         if (queryParams == null) return await client.GetAsync($"https://discord.com/api/{urlEndpoint}");
         return await client.GetAsync($"https://discord.com/api/{urlEndpoint}?{string.Join("&", queryParams.Select(x => $"{x.Key}={x.Value}"))}");
     }
@@ -87,8 +84,8 @@ public class DashboardController : Controller {
         var requestData = new Dictionary<string, string> {
             ["grant_type"] = "refresh_token", 
             ["refresh_token"] = refreshToken,
-            ["client_id"] = _discordSettings.ClientId,
-            ["client_secret"] = _discordSettings.ClientSecret
+            ["client_id"] = Environment.GetEnvironmentVariable("DISCORD_CLIENT_ID"),
+            ["client_secret"] = Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET")
         };
         var request = new HttpRequestMessage(HttpMethod.Post, "https://discord.com/api/oauth2/token") {
             Content = new FormUrlEncodedContent(requestData)
