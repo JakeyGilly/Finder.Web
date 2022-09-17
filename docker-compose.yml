@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    image: web
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DISCORD_CLIENT_SECRET: "YOUR_CLIENT_SECRET"
+      DISCORD_CLIENT_ID: "YOUR_CLIENT_ID"
+      DISCORD_BOT_TOKEN: "YOUR_BOT_TOKEN"
+      DB_CONNECTION_STRING: "Server=db;Database=YOUR_DATABASE;User=YOUR_USER;Password=YOUR_PASSWORD;"
+      BOT_OWNERS: "YOUR_USER_ID"
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: "finder"
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "finder"

@@ -1,10 +1,12 @@
 using Finder.Web.Database;
-using Finder.Web.Models;
 using Finder.Web.Repositories.Bot;
 using Finder.Web.Repositories.Web;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
@@ -29,40 +31,34 @@ public static class Program {
             return;
         }
         var builder = WebApplication.CreateBuilder(args);
-        builder.Services.AddDbContext<ApplicationContext>(options =>
-            options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")!),
-            ServiceLifetime.Transient
-        );
+        builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")!), ServiceLifetime.Transient);
         builder.Services.AddScoped<UserSettingsRepository>();
         builder.Services.AddScoped<AddonsRepository>();
-        builder.Services.AddAuthentication(options => {
-            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        }).AddCookie(options => {
-            options.LoginPath = "/signin";
-            options.ExpireTimeSpan = TimeSpan.FromDays(7);
-        }).AddDiscord(options => {
-            options.Scope.Add("identify");
-            options.Scope.Add("guilds");
-            options.Prompt = "none";
-            options.ClientId = Environment.GetEnvironmentVariable("DISCORD_CLIENT_ID")!;
-            options.ClientSecret = Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET")!;
-            options.SaveTokens = true;
-            options.Events = new OAuthEvents {
-                OnCreatingTicket = context => {
-                    List<string> ownerIds = Environment.GetEnvironmentVariable("BOT_OWNER_IDS")?.Split(',').ToList() ?? new();
-                    if (!ulong.TryParse(context.Principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) return Task.CompletedTask;
-                    if (ownerIds.IsNullOrEmpty() || !ownerIds.Contains(userId.ToString())) {
-                        context.Identity.AddClaim(new Claim("IsBotOwner", "false"));
-                    } else {
-                        context.Identity.AddClaim(new Claim("IsBotOwner", "true"));
+        builder.Services.AddAuthentication(options => options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options => {
+                options.LoginPath = "/signin";
+                options.ExpireTimeSpan = TimeSpan.FromDays(7);
+            }).AddDiscord(options => {
+                options.Scope.Add("identify");
+                options.Scope.Add("guilds");
+                options.Prompt = "none";
+                options.ClientId = Environment.GetEnvironmentVariable("DISCORD_CLIENT_ID")!;
+                options.ClientSecret = Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET")!;
+                options.SaveTokens = true;
+                options.Events = new OAuthEvents {
+                    OnCreatingTicket = context => {
+                        List<string> ownerIds = Environment.GetEnvironmentVariable("BOT_OWNER_IDS")?.Split(',').ToList() ?? new();
+                        if (!ulong.TryParse(context.Principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) return Task.CompletedTask;
+                        if (ownerIds.IsNullOrEmpty() || !ownerIds.Contains(userId.ToString())) {
+                            context.Identity.AddClaim(new Claim("IsBotOwner", "false"));
+                        } else {
+                            context.Identity.AddClaim(new Claim("IsBotOwner", "true"));
+                        }
+                        return Task.CompletedTask;
                     }
-                    return Task.CompletedTask;
-                }
-            };
-        });
-        builder.Services.AddAuthorization(options => {
-            options.AddPolicy("IsBotOwner", policy => policy.RequireClaim("IsBotOwner", "true", "false"));
-        });
+                };
+            });
+        builder.Services.AddAuthorization(options => options.AddPolicy("IsBotOwner", policy => policy.RequireClaim("IsBotOwner", "true", "false")));
         builder.Services.AddHttpClient();
         builder.Services.AddControllersWithViews();
         var app = builder.Build();
@@ -75,3 +71,4 @@ public static class Program {
         app.Run();
     }
 }
+
