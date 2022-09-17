@@ -6,3 +6,4 @@ launchSettings.json
 .vs/
 Migrations/
 Properties/launchSettings.json
+docker-compose.yml
