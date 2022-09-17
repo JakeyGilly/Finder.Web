@@ -5,3 +5,4 @@ launchSettings.json
 .idea/
 .vs/
 Migrations/
+Properties/launchSettings.json
