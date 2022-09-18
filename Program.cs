@@ -1,15 +1,10 @@
 using Finder.Web.Database;
-using Finder.Web.Repositories.Bot;
-using Finder.Web.Repositories.Web;
+using Finder.Web.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
-
 namespace Finder.Web;
 
 public static class Program {
@@ -32,8 +27,8 @@ public static class Program {
         }
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")!), ServiceLifetime.Transient);
-        builder.Services.AddScoped<UserSettingsRepository>();
-        builder.Services.AddScoped<AddonsRepository>();
+        builder.Services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
+        builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
         builder.Services.AddAuthentication(options => options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options => {
                 options.LoginPath = "/signin";

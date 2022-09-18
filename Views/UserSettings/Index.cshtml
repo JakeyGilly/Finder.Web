@@ -1,16 +1,12 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @using System.Security.Claims
-@using Finder.Web.Repositories.Web
-@inject UserSettingsRepository UserSettingsRepository
+@using Finder.Web.Repositories
+@inject IUnitOfWork UnitOfWork
 @{
     ViewData["Title"] = "Settings";
-    if (User.Identity.IsAuthenticated) {
-        ViewData["DarkMode"] = await UserSettingsRepository.GetUserSettingAsync(ulong.Parse(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value), "DarkMode") ?? "false";
-    } else {
-        ViewData["DarkMode"] = "false";
-    }
-    var darkMode = await UserSettingsRepository.GetUserSettingAsync(ulong.Parse(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value), "DarkMode");
-    var devMode = await UserSettingsRepository.GetUserSettingAsync(ulong.Parse(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value), "DevMode");
-
+    var darkMode = await UnitOfWork.UserSettings.GetUserSettingAsync(ulong.Parse(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value), "DarkMode");
+    var devMode = await UnitOfWork.UserSettings.GetUserSettingAsync(ulong.Parse(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value), "DevMode");
+    ViewData["DarkMode"] = darkMode ?? "false";
 }
 <form action="/user/settings" method="post">
     <div class="form-check form-switch">

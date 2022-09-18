@@ -1,29 +1,18 @@
-@inject AddonsRepository AddonsRepository
-@inject UserSettingsRepository UserSettingsRepository
-@using Finder.Web.Models.DiscordAPIModels
-@using Finder.Web.Repositories.Bot
-@using Finder.Web.Repositories.Web
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @using System.Security.Claims
+@using Finder.Web.Models.DiscordAPIModels
+@using Finder.Web.Repositories
+@inject IUnitOfWork UnitOfWork
 @model Finder.Web.Models.DTO.GuildDashboardDTO
 @{
     ViewData["Title"] = "Dashboard";
-    if (User.Identity.IsAuthenticated) {
-        ViewData["DarkMode"] = await UserSettingsRepository.GetUserSettingAsync(ulong.Parse(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value), "DarkMode") ?? "false";
-    } else {
-        ViewData["DarkMode"] = "false";
-    }
+    ViewData["DarkMode"] = await UnitOfWork.UserSettings.GetUserSettingAsync(ulong.Parse(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value), "DarkMode") ?? "false";
     if (Model.Guild == null) {
         throw new Exception("Guild is null");
     }
     if (Model.GuildMembers == null) {
         throw new Exception("GuildMembers is null");
     }
-    var guildId = Model.Guild.Id;
-    var ticTacToeAddon = await AddonsRepository.AddonEnabled(guildId, "TicTacToe");
-    var economyAddon = await AddonsRepository.AddonEnabled(guildId, "Economy");
-    var levelingAddon = await AddonsRepository.AddonEnabled(guildId, "Leveling");
-    var ticketingAddon = await AddonsRepository.AddonEnabled(guildId, "Ticketing");
 }
 
 <img src=@($"https://cdn.discordapp.com/icons/{Model.Guild.Id}/{Model.Guild.Icon}.png") alt="Guild Icon" width="192" div class="img-fluid rounded-circle mx-auto d-block">
@@ -39,7 +28,6 @@
         <img src="https://support.discord.com/hc/article_attachments/360029034411/mceclip4.png" alt="Level 3 Server Boost" class="rounded-5 mx-auto d-block"/>
         break;
 }
-
 <div class="row mt-3">
     <div class="col-md-4">
         <div class="card">
@@ -59,22 +47,22 @@
             <div class="card-body">
                 <h5 class="card-title">Addons</h5>
                 <p class="card-text">0/4 Addons Enabled</p>
-                <form class="form-check form-switch" style="padding-left: 0; padding-right: 0" action=@($"/dashboard/{guildId}") method="post">
+                <form class="form-check form-switch" style="padding-left: 0; padding-right: 0" action=@($"/dashboard/{Model.Guild.Id}") method="post">
                     <div class="rounded" style="background-color: #444">
                         <div class="m-3 ms-5 ps-0">
-                            <input class="form-check-input" type="checkbox" id="TicTacToeAddon" name="TicTacToeAddon" value="true" @(ticTacToeAddon ? "checked=\"checked\"" : "")/>
+                            <input class="form-check-input" type="checkbox" id="TicTacToeAddon" name="TicTacToeAddon" value="true" @(await UnitOfWork.Addons.AddonEnabled(Model.Guild.Id, "TicTacToe") ? "checked=\"checked\"" : "")/>
                             <label class="form-check-label" for="TicTacToeAddon">TicTacToe Adddon</label>
                         </div>
                         <div class="m-3 ms-5 ps-0">
-                            <input class="form-check-input" type="checkbox" id="EconomyAddon" name="EconomyAddon" value="true" @(economyAddon ? "checked=\"checked\"" : "")/>
+                            <input class="form-check-input" type="checkbox" id="EconomyAddon" name="EconomyAddon" value="true" @(await UnitOfWork.Addons.AddonEnabled(Model.Guild.Id, "Economy") ? "checked=\"checked\"" : "")/>
                             <label class="form-check-label" for="EconomyAddon">Economy Addon</label>
                         </div>
                         <div class="m-3 ms-5 ps-0">
-                            <input class="form-check-input" type="checkbox" id="LevelingAddon" name="LevelingAddon" value="true" @(levelingAddon ? "checked=\"checked\"" : "")/>
+                            <input class="form-check-input" type="checkbox" id="LevelingAddon" name="LevelingAddon" value="true" @(await UnitOfWork.Addons.AddonEnabled(Model.Guild.Id, "Leveling") ? "checked=\"checked\"" : "")/>
                             <label class="form-check-label" for="LevelingAddon">Leveling Adddon</label>
                         </div>
                         <div class="m-3 ms-5 ps-0">
-                            <input class="form-check-input" type="checkbox" id="TicketingAddon" name="TicketingAddon" value="true" @(ticketingAddon ? "checked=\"checked\"" : "")/>
+                            <input class="form-check-input" type="checkbox" id="TicketingAddon" name="TicketingAddon" value="true" @(await UnitOfWork.Addons.AddonEnabled(Model.Guild.Id, "Ticketing") ? "checked=\"checked\"" : "")/>
                             <label class="form-check-label" for="TicketingAddon">Ticketing Addon</label>
                         </div>
                         <button type="submit" class="btn btn-primary">Save Changes</button>

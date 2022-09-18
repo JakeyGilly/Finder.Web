@@ -1,10 +1,10 @@
 ﻿@using System.Security.Claims
-@using Finder.Web.Repositories.Web
-@inject UserSettingsRepository UserSettingsRepository
+@using Finder.Web.Repositories
+@inject IUnitOfWork UnitOfWork
 @{
     ViewData["Title"] = "Home Page";
     if (User.Identity.IsAuthenticated) {
-        ViewData["DarkMode"] = await UserSettingsRepository.GetUserSettingAsync(ulong.Parse(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value), "DarkMode") ?? "false";
+        ViewData["DarkMode"] = await UnitOfWork.UserSettings.GetUserSettingAsync(ulong.Parse(User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value), "DarkMode") ?? "false";
     } else {
         ViewData["DarkMode"] = "false";
     }

@@ -1,12 +1,11 @@
 ﻿using Finder.Web.Models.DiscordAPIModels;
 using Finder.Web.Models.DTO;
-using Finder.Web.Repositories.Bot;
-using System.Net;
+using Finder.Web.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-
+using System.Net;
 namespace Finder.Web.Controllers;
 
 [Authorize]
@@ -14,11 +13,11 @@ namespace Finder.Web.Controllers;
 public class DashboardController : Controller {
     private readonly ILogger<DashboardController> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly AddonsRepository _addonsRepository;
-    public DashboardController(ILogger<DashboardController> logger, IHttpClientFactory httpClientFactory, AddonsRepository addonsRepository) {
+    private readonly IUnitOfWork _unitOfWork;
+    public DashboardController(ILogger<DashboardController> logger, IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork) {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
-        _addonsRepository = addonsRepository;
+        _unitOfWork = unitOfWork;
     }
     
     [Route("")]
@@ -45,11 +44,11 @@ public class DashboardController : Controller {
     [HttpPost("{id}")]
     public async Task<IActionResult> GuildUpdate(string id, [FromForm] string ticTacToeAddon, [FromForm] string economyAddon, [FromForm] string levelingAddon, [FromForm] string ticketingAddon) {
         var guildId = ulong.Parse(id);
-        await _addonsRepository.AddAddonAsync(guildId, "TicTacToe", ticTacToeAddon);
-        await _addonsRepository.AddAddonAsync(guildId, "Economy", economyAddon);
-        await _addonsRepository.AddAddonAsync(guildId, "Leveling", levelingAddon);
-        await _addonsRepository.AddAddonAsync(guildId, "Ticketing", ticketingAddon);
-        await _addonsRepository.SaveAsync();
+        await _unitOfWork.Addons.AddAddonAsync(guildId, "TicTacToe", ticTacToeAddon);
+        await _unitOfWork.Addons.AddAddonAsync(guildId, "Economy", economyAddon);
+        await _unitOfWork.Addons.AddAddonAsync(guildId, "Leveling", levelingAddon);
+        await _unitOfWork.Addons.AddAddonAsync(guildId, "Ticketing", ticketingAddon);
+        await _unitOfWork.SaveChangesAsync();
         return RedirectToAction("Index");
     }
     

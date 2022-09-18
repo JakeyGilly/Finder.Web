@@ -2,17 +2,18 @@ using Finder.Web.Database;
 using Finder.Web.Models.Data.Web;
 namespace Finder.Web.Repositories.Web;
 
-public class UserSettingsRepository : Repository<UserSettingsRepository> {
+public class UserSettingsRepository : Repository<UserSettingsModel>, IUserSettingsRepository {
     public UserSettingsRepository(ApplicationContext context) : base(context) { }
 
-    public async Task<UserSettingsModel> GetUserSettingsModelAsync(ulong userId) {
-        return await Context.Set<UserSettingsModel>().FindAsync((long)userId) ?? new UserSettingsModel();
+    public async Task<string?> GetUserSettingAsync(ulong userId, string key) {
+        var settings = await GetAsync(userId);
+        return settings?.Settings[key];
     }
 
     public async Task AddSettingAsync(ulong userId, string key, string value) {
-        var userSettings = await Context.Set<UserSettingsModel>().FindAsync((long)userId);
+        var userSettings = await GetAsync(userId);
         if (userSettings == null) {
-            await Context.Set<UserSettingsModel>().AddAsync(new UserSettingsModel {
+            await AddAsync(new UserSettingsModel {
                 UserId = (long)userId,
                 Settings = new Dictionary<string, string> {
                     { key, value }
@@ -29,12 +30,7 @@ public class UserSettingsRepository : Repository<UserSettingsRepository> {
     }
 
     public async Task<bool> UserSettingExists(ulong userId, string key) {
-        var settings = await Context.Set<UserSettingsModel>().FindAsync((long)userId);
-        return settings != null && settings.Settings.ContainsKey(key);
-    }
-    
-    public async Task<string?> GetUserSettingAsync(ulong userId, string key) {
-        var settings = await Context.Set<UserSettingsModel>().FindAsync((long)userId);
-        return settings?.Settings.GetValueOrDefault(key);
+        var settings = await GetAsync(userId);
+        return settings?.Settings.ContainsKey(key) ?? false;
     }
 }

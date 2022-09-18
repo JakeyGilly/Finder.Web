@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-
 namespace Finder.Web.Models.DiscordAPIModels;
 
 public class Integration {
