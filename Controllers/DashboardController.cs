@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net;
+using System.Text;
 namespace Finder.Web.Controllers;
 
 [Authorize]
@@ -28,16 +29,18 @@ public class DashboardController : Controller {
             UserProfile =  JsonConvert.DeserializeObject<User>(await (await AccessTokenRefreshWrapper(async () => await UserDiscordApiGet("users/@me"))).Content.ReadAsStringAsync())
         });
     }
-    
-    
+
+
     [Route("{id}")]
     public async Task<IActionResult> Guild(string id) {
+        Console.WriteLine(await (await BotDiscordApiGet($"guilds/{id}/channels", new Dictionary<string, string> {{ "limit", "1000" }})).Content.ReadAsStringAsync());
         return View("Dashboard", new GuildDashboardDTO {
-            Guild = JsonConvert.DeserializeObject<Guild>(await (await AccessTokenRefreshWrapper(async () => await BotDiscordApiGet($"guilds/{id}", new Dictionary<string, string> {{"with_counts", "true"}}))).Content.ReadAsStringAsync()),
+            Guild = JsonConvert.DeserializeObject<Guild>(
+                await (await BotDiscordApiGet($"guilds/{id}", new Dictionary<string, string> {{"with_counts", "true"}})).Content.ReadAsStringAsync()),
             GuildMembers = JsonConvert.DeserializeObject<List<GuildMember>>(
-                await (await AccessTokenRefreshWrapper(async () => 
-                    await BotDiscordApiGet($"guilds/{id}/members", new Dictionary<string, string> {{ "limit", "1000" }})
-                )).Content.ReadAsStringAsync()),
+                await (await BotDiscordApiGet($"guilds/{id}/members", new Dictionary<string, string> {{ "limit", "1000" }})).Content.ReadAsStringAsync()),
+            GuildChannels = JsonConvert.DeserializeObject<List<GuildChannel>>(
+                await (await BotDiscordApiGet($"guilds/{id}/channels", new Dictionary<string, string> {{ "limit", "1000" }})).Content.ReadAsStringAsync())
         });
     }
     
@@ -76,6 +79,15 @@ public class DashboardController : Controller {
         client.DefaultRequestHeaders.Add("Authorization", $"Bot {Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN")}");
         if (queryParams == null) return await client.GetAsync($"https://discord.com/api/{urlEndpoint}");
         return await client.GetAsync($"https://discord.com/api/{urlEndpoint}?{string.Join("&", queryParams.Select(x => $"{x.Key}={x.Value}"))}");
+    }
+    
+    [NonAction]
+    private async Task<HttpResponseMessage> BotDiscordApiPost(string urlEndpoint, string json, Dictionary<string, string>? queryParams = null) {
+        var client = _httpClientFactory.CreateClient();
+        HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
+        client.DefaultRequestHeaders.Add("Authorization", $"Bot {Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN")}");
+        if (queryParams == null) return await client.PostAsync($"https://discord.com/api/{urlEndpoint}", content);
+        return await client.PostAsync($"https://discord.com/api/{urlEndpoint}?{string.Join("&", queryParams.Select(x => $"{x.Key}={x.Value}"))}", content);
     }
     [NonAction]
     private async Task RefreshAccessToken(string refreshToken) {
