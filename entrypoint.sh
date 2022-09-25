@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 run_cmd="dotnet run"
-until dotnet ef migrations add init; do
+until dotnet ef migrations add initweb; do
 >&2 echo "PostgreSQL is migrating database"
 sleep 1
 done
