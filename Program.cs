@@ -31,7 +31,7 @@ public static class Program {
         builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
         builder.Services.AddAuthentication(options => options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options => {
-                options.LoginPath = "/signin";
+                options.LoginPath = "/login";
                 options.ExpireTimeSpan = TimeSpan.FromDays(7);
             }).AddDiscord(options => {
                 options.Scope.Add("identify");
@@ -42,7 +42,7 @@ public static class Program {
                 options.SaveTokens = true;
                 options.Events = new OAuthEvents {
                     OnCreatingTicket = context => {
-                        List<string> ownerIds = Environment.GetEnvironmentVariable("BOT_OWNER_IDS")?.Split(',').ToList() ?? new();
+                        List<string> ownerIds = Environment.GetEnvironmentVariable("BOT_OWNER_IDS")?.Split(',').ToList() ?? new List<string>();
                         if (!ulong.TryParse(context.Principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) return Task.CompletedTask;
                         if (ownerIds.IsNullOrEmpty() || !ownerIds.Contains(userId.ToString())) {
                             context.Identity.AddClaim(new Claim("IsBotOwner", "false"));

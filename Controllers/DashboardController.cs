@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 namespace Finder.Web.Controllers;
 
@@ -33,7 +34,6 @@ public class DashboardController : Controller {
 
     [Route("{id}")]
     public async Task<IActionResult> Guild(string id) {
-        Console.WriteLine(await (await BotDiscordApiGet($"guilds/{id}/channels", new Dictionary<string, string> {{ "limit", "1000" }})).Content.ReadAsStringAsync());
         return View("Dashboard", new GuildDashboardDTO {
             Guild = JsonConvert.DeserializeObject<Guild>(
                 await (await BotDiscordApiGet($"guilds/{id}", new Dictionary<string, string> {{"with_counts", "true"}})).Content.ReadAsStringAsync()),
@@ -44,15 +44,21 @@ public class DashboardController : Controller {
         });
     }
     
-    [HttpPost("{id}")]
-    public async Task<IActionResult> GuildUpdate(string id, [FromForm] string ticTacToeAddon, [FromForm] string economyAddon, [FromForm] string levelingAddon, [FromForm] string ticketingAddon) {
+    [HttpPost("{id}/addons")]
+    public async Task<IActionResult> Addons(string id, [FromForm] string ticTacToeAddon, [FromForm] string economyAddon, [FromForm] string levelingAddon, [FromForm] string ticketingAddon) {
         var guildId = ulong.Parse(id);
         await _unitOfWork.Addons.AddAddonAsync(guildId, "TicTacToe", ticTacToeAddon);
         await _unitOfWork.Addons.AddAddonAsync(guildId, "Economy", economyAddon);
         await _unitOfWork.Addons.AddAddonAsync(guildId, "Leveling", levelingAddon);
         await _unitOfWork.Addons.AddAddonAsync(guildId, "Ticketing", ticketingAddon);
         await _unitOfWork.SaveChangesAsync();
-        return RedirectToAction("Index");
+        return RedirectToAction("Guild", new { id });
+    }
+    
+    [HttpPost("{id}/message")]
+    public async Task<IActionResult> Message(string id, [FromForm] ulong channelId, [FromForm] string message) {
+        await BotDiscordApiPost($"channels/{channelId}/messages", $"{{\"content\": \"{message}\"}}");
+        return RedirectToAction("Guild", new { id });
     }
     
     [NonAction]
@@ -95,8 +101,8 @@ public class DashboardController : Controller {
         var requestData = new Dictionary<string, string> {
             ["grant_type"] = "refresh_token", 
             ["refresh_token"] = refreshToken,
-            ["client_id"] = Environment.GetEnvironmentVariable("DISCORD_CLIENT_ID"),
-            ["client_secret"] = Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET")
+            ["client_id"] = Environment.GetEnvironmentVariable("DISCORD_CLIENT_ID")!,
+            ["client_secret"] = Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET")!
         };
         var request = new HttpRequestMessage(HttpMethod.Post, "https://discord.com/api/oauth2/token") {
             Content = new FormUrlEncodedContent(requestData)

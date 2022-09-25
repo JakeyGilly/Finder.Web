@@ -50,7 +50,7 @@
             <div class="card-body">
                 <h5 class="card-title">Addons</h5>
                 <p class="card-text">0/4 Addons Enabled</p>
-                <form class="form-check form-switch" style="padding-left: 0; padding-right: 0" action=@($"/dashboard/{Model.Guild.Id}") method="post">
+                <form class="form-check form-switch" style="padding-left: 0; padding-right: 0" action=@($"/dashboard/{Model.Guild.Id}/message") method="post">
                     <div class="rounded" style="background-color: #444">
                         <div class="m-3 ms-5 ps-0">
                             <input class="form-check-input" type="checkbox" id="TicTacToeAddon" name="TicTacToeAddon" value="true" @(await UnitOfWork.Addons.AddonEnabled(Model.Guild.Id, "TicTacToe") ? "checked=\"checked\"" : "")/>
@@ -90,22 +90,30 @@
         </div>
     </div>
 </div>
-<form class="form-check" action=@($"/dashboard/{Model.Guild.Id}") method="post">
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Send message in channel</h5>
-            <div class="card-text">
-                <div class="col-md-4">
-                    <div class="form-floating mb-3">
-                        <select class="form-select" id="ChannelId" name="ChannelId">
-                            @foreach (var channel in Model.GuildChannels) {
-                                <option value="@(channel.Id)">@(channel.Name)</option>
-                            }
-                        </select>
-                        <label for="ChannelId">Channel</label>
-                    </div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Send message in channel</h5>
+        <div class="card-text">
+            <div class="col-md-4">
+                <div class="form-floating mb-3">
+                    <form action=@($"/dashboard/{Model.Guild.Id}/message") method="post">
+                        <div class="form-group">
+                            <label for="channelId">Channel</label>
+                            <select class="form-select" id="channelId" name="channelId">
+                                @foreach (var channel in Model.GuildChannels.Where(channel => channel.Type == ChannelTypes.GUILD_TEXT)) {
+                                    <option value="@channel.Id">@channel.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <input type="text" class="form-control" id="message" name="message" placeholder="Enter Message"/>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-</form>
+</div>

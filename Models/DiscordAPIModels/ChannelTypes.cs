@@ -1,6 +1,6 @@
 namespace Finder.Web.Models.DiscordAPIModels;
 public enum ChannelTypes {
-    GUID_TEXT = 0,
+    GUILD_TEXT = 0,
     DM = 1,
     GUILD_VOICE = 2,
     GROUP_DM = 3,
