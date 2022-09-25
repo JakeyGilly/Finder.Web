@@ -6,7 +6,6 @@ services:
       - "8080:80"
     depends_on:
       - db
-    image: web
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
       DISCORD_CLIENT_SECRET: "DISCORD_CLIENT_SECRET"
