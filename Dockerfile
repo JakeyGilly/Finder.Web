@@ -1,11 +1,11 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:6.0
-COPY . /app
+﻿FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
 WORKDIR /app
+COPY . ./
 ENV ASPNETCORE_URLS=http://+:80
-RUN ["dotnet", "restore"]
-RUN ["dotnet", "build"]
+RUN dotnet restore
+RUN dotnet publish -c Release -o out
 EXPOSE 80/tcp
-RUN ["dotnet", "tool", "install", "--global", "dotnet-ef"]
-ENV PATH="${PATH}:~/.dotnet/tools/"
-RUN chmod +x ./entrypoint.sh
-CMD /bin/bash ./entrypoint.sh
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
+WORKDIR /app
+COPY --from=build-env /app/out .
+ENTRYPOINT ["dotnet", "Finder.Web.dll"]
