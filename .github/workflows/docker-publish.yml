@@ -12,5 +12,5 @@ jobs:
       - name: Build and publish a Docker image for ${{ github.repository }}
         uses: macbre/push-to-ghcr@master
         with:
-          image_name: finderweb
+          image_name: jakeygilly/finderweb
           github_token: ${{ secrets.GITHUB_TOKEN }}
