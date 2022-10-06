@@ -22,4 +22,3 @@ jobs:
         with:
           push: true
           tags: ghcr.io/jakeygilly/finderweb:latest
-     
